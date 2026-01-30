@@ -1,7 +1,40 @@
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
+```html
+<script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+<script>
+function setupWeChat() {
+    var pageUrl = window.location.href.split('#')[0];
+    fetch('wechat.php?url=' + encodeURIComponent(pageUrl))
+        .then(res => res.json())
+        .then(config => {
+            wx.config({
+                debug: false,
+                appId: config.appId,
+                timestamp: config.timestamp,
+                nonceStr: config.nceStr,
+                signature: config.signature,
+                jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+            });
+            wx.ready(() => {
+                wx.updateAppMessageShareData({
+                    title: '🌟 超浪漫啵啵表情雨 🌟',
+                    desc: '滑动召唤爱心雨，鳌拜宝宝的最爱！',
+                    link: pageUrl,
+                    imgUrl: 'https://llion1118.github.io/lion-/share.jpg'
+                });
+                wx.updateTimelineShareData({
+                    title: '超好玩的啵啵表情雨！快来试试',
+                    link: pageUrl,
+                    imgUrl: 'https://lion1118.github.io/lion-/share.jpg'
+                });
+            });
+        });
+}
+if (/micromessenger/i.test(navigator.userAgent)) { setTimeout(setupWeChat, 1000); }
+</script>
+```<head>
     <meta charset="UTF-8">
     <!-- 微信关键meta标签 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -318,4 +351,5 @@
     </script>
 </body>
 </html>
+
 ```
