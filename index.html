@@ -1,7 +1,7 @@
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
-```html
+    ```html
 <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 <script>
 function setupWeChat() {
@@ -36,320 +36,805 @@ if (/micromessenger/i.test(navigator.userAgent)) { setTimeout(setupWeChat, 1000)
 </script>
 ```<head>
     <meta charset="UTF-8">
-    <!-- 微信关键meta标签 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="format-detection" content="telephone=no, email=no">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    
-    <!-- 防止IOS橡皮筋效果 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>啵啵表情雨 - 荣耀版</title>
     <style>
-        html, body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 100%);
+            font-family: "Microsoft YaHei", "Segoe UI Emoji", "华文行楷", sans-serif;
+            min-height: 100vh;
+            touch-action: none;
+        }
+        
+        #canvas {
+            display: block;
             position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff3366, #ff6699);
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 6px 25px rgba(255, 102, 179, 0.5);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .instructions {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #ffccff;
+            font-size: 18px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 204, 255, 0.3);
+            box-shadow: 0 0 30px rgba(255, 102, 204, 0.3);
+            max-width: 90%;
+        }
+        
+        .final-text-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 200;
+            opacity: 0;
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .final-text {
+            font-size: 60px;
+            font-weight: 900;
+            text-align: center;
+            white-space: nowrap;
+            background: linear-gradient(45deg, #ff3366, #ff9933, #ffff33, #33ff33, #33ffff, #3366ff, #cc33ff);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            animation: rainbow 3s ease infinite, glow 2s ease-in-out infinite alternate;
+            padding: 30px 60px;
+            border-radius: 50px;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 80px rgba(255, 51, 153, 0.6);
+        }
+        
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes glow {
+            0% { filter: drop-shadow(0 0 20px rgba(255, 51, 153, 0.7)); }
+            100% { filter: drop-shadow(0 0 40px rgba(51, 153, 255, 0.7)); }
+        }
+        
+        .crown {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 80px;
+            animation: crownFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px gold);
+        }
+        
+        @keyframes crownFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+            50% { transform: translateX(-50%) translateY(-20px) rotate(5deg); }
+        }
+        
+        .fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            pointer-events: none;
+            z-index: 150;
+        }
+        
+        .achievement-badge {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            background: linear-gradient(135deg, #ffcc00, #ff9900);
+            padding: 15px;
+            border-radius: 20px;
+            transform: translateX(-120%);
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(255, 204, 0, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .achievement-badge.show {
+            transform: translateX(0);
+        }
+        
+        .badge-text {
+            color: #8b4513;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .badge-icon {
+            font-size: 40px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        .reset-button {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, #33cc33, #009933);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 10px 25px rgba(51, 204, 51, 0.4);
+        }
+        
+        .reset-button.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .progress-bar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-    </style>
-    
-    <title>鳌拜专属--百万个啵啵</title>
-    <style>
-        /* 原有CSS代码保持不变，但添加以下适配 */
-        * {
-            -webkit-text-size-adjust: 100%;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            z-index: 100;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
-        /* 适配微信底部安全区域 */
-        body {
-            padding-bottom: constant(safe-area-inset-bottom);
-            padding-bottom: env(safe-area-inset-bottom);
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff3366, #ff6699);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
         }
         
-        /* 微信中touch-action需要更精确 */
-        #canvas {
-            touch-action: pan-y pinch-zoom;
-        }
-        
-        /* 适配微信字体 */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
 <body>
-    <!-- 添加微信加载提示 -->
-    <div id="wechat-loading" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #1a1a2e;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        color: white;
-        font-size: 18px;
-    ">
-        <div style="margin-bottom: 20px; font-size: 40px;">✨</div>
-        <div>加载啵啵表情雨...</div>
-        <div id="load-progress" style="margin-top: 20px; color: #ff6699;">0%</div>
+    <div class="counter">啵啵能量: <span id="count">0</span></div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-text" id="progressText">0/100</div>
     </div>
     
-    <!-- 原有HTML结构保持不变 -->
-    <div class="counter">啵啵能量: <span id="count">0</span></div>
-    <!-- ... 其他原有HTML ... -->
+    <div class="instructions">
+        ✨ 滑动屏幕召唤啵啵雨 ✨<br>
+        <span style="font-size:14px;color:#ffccff;">积累100个啵啵解锁荣耀时刻！</span>
+    </div>
+    
+    <div class="final-text-container" id="finalTextContainer">
+        <div class="crown">👑</div>
+        <div class="final-text" id="finalText"></div>
+    </div>
+    
+    <div class="fireworks-container" id="fireworksContainer"></div>
+    
+    <div class="achievement-badge" id="achievementBadge">
+        <div class="badge-icon">🏆</div>
+        <div class="badge-text">啵啵大师</div>
+    </div>
+    
+    <button class="reset-button" id="resetButton">再来一次</button>
+    
     <canvas id="canvas"></canvas>
 
     <script>
-        // ========== 微信适配核心代码 ==========
+        // 初始化Canvas
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 配置参数
+        const CONFIG = {
+            maxParticles: 800,
+            spawnCount: 8,
+            targetCount: 100,
+            freezeDuration: 4000,
+            cooldownDuration: 10000
+        };
+
+        // 啵啵表情库
+        const EMOJIS = ['💋', '👄', '💘', '💌', '😘', '✨', '🌸', '💖', '🎀', '💕', '🌟', '⭐', '🎇', '🎆', '🌈'];
         
-        // 1. 检测微信环境
-        function isWeChat() {
-            const ua = navigator.userAgent.toLowerCase();
-            return ua.indexOf('micromessenger') !== -1;
-        }
+        // 特殊文字 - 重点突出
+        const SPECIAL_TEXT = '鳌拜是雷恩最好的宝宝';
+        const HIGHLIGHT_INDEXES = [0, 1, 5, 6, 9, 10]; // 要突出的字索引
         
-        // 2. 微信音频自动播放处理
-        function setupWeChatAudio() {
-            document.addEventListener('WeixinJSBridgeReady', function() {
-                // 微信JSBridge准备就绪后，可以自动播放音频
-                const audio = new Audio();
-                audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=='; // 空音频
-                audio.play().then(() => {
-                    console.log('微信音频自动播放已启用');
-                });
-            });
-        }
-        
-        // 3. 防止微信下拉刷新
-        let startY = 0;
-        document.addEventListener('touchstart', function(e) {
-            startY = e.touches[0].clientY;
-        }, { passive: true });
-        
-        document.addEventListener('touchmove', function(e) {
-            const currentY = e.touches[0].clientY;
-            // 如果页面在顶部且下拉，阻止默认行为
-            if (document.documentElement.scrollTop <= 0 && currentY > startY) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-        
-        // 4. 微信加载优化
-        window.addEventListener('load', function() {
-            const loading = document.getElementById('wechat-loading');
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                document.getElementById('load-progress').textContent = `${progress}%`;
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        loading.style.opacity = '0';
-                        setTimeout(() => {
-                            loading.style.display = 'none';
-                        }, 500);
-                    }, 300);
+        // 粒子系统
+        let particles = [];
+        let particleCount = 0;
+        let isSpecialTextTriggered = false;
+        let isFreezing = false;
+        let animationFrameId = null;
+        let achievementShown = false;
+
+        // 啵啵粒子类
+        class BoboParticle {
+            constructor(x, y, isTextChar = false, char = '', index = -1) {
+                this.x = x;
+                this.y = y;
+                this.isTextChar = isTextChar;
+                this.index = index;
+                this.isHighlighted = HIGHLIGHT_INDEXES.includes(index);
+                
+                if (isTextChar) {
+                    this.char = char;
+                    this.size = this.isHighlighted ? 70 : 50;
+                    this.baseSize = this.size;
+                    this.color = this.isHighlighted ? this.getHighlightColor() : this.getNormalColor();
+                    this.speedY = Math.random() * 5 + 3;
+                    this.speedX = Math.random() * 4 - 2;
+                    this.rotation = Math.random() * 360;
+                    this.spin = Math.random() * 2 - 1;
+                    this.alpha = 0;
+                    this.targetX = 0;
+                    this.targetY = canvas.height * 0.4;
+                    this.state = 'falling';
+                    this.bounceCount = 0;
+                    this.maxBounces = this.isHighlighted ? 4 : 2;
+                    this.sparkleTimer = 0;
+                    this.sparkleSpeed = Math.random() * 0.05 + 0.02;
+                    this.orbitRadius = this.isHighlighted ? 30 : 15;
+                    this.orbitAngle = Math.random() * Math.PI * 2;
+                    this.orbitSpeed = Math.random() * 0.02 + 0.01;
+                } else {
+                    this.emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+                    this.size = Math.random() * 30 + 25;
+                    this.speedY = Math.random() * 3 + 1;
+                    this.speedX = Math.random() * 2 - 1;
+                    this.rotation = Math.random() * 360;
+                    this.spin = Math.random() * 4 - 2;
+                    this.alpha = 1;
+                    this.wobble = Math.random() * Math.PI * 2;
+                    this.wobbleSpeed = Math.random() * 0.03 + 0.01;
+                    this.floatSpeed = Math.random() * 0.5 + 0.2;
                 }
-            }, 100);
+            }
             
-            // 初始化原有程序
-            initApp();
-        });
-        
-        // 5. 微信分享配置
-        function setupWeChatShare() {
-            if (!isWeChat()) return;
+            getNormalColor() {
+                const colors = ['#FF6699', '#FF66CC', '#FF99CC', '#FFCCFF'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
             
-            // 注意：以下配置需要在微信JS-SDK环境中使用
-            // 实际使用时需要后端生成签名
-            /*
-            wx.config({
-                debug: false,
-                appId: '你的AppID',
-                timestamp: 时间戳,
-                nonceStr: '随机字符串',
-                signature: '签名',
-                jsApiList: [
-                    'onMenuShareTimeline',
-                    'onMenuShareAppMessage',
-                    'updateAppMessageShareData',
-                    'updateTimelineShareData'
-                ]
-            });
+            getHighlightColor() {
+                const colors = ['#FF3333', '#FF6600', '#FFCC00', '#FFFF33'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
             
-            wx.ready(function() {
-                // 分享到朋友圈
-                wx.updateTimelineShareData({
-                    title: '超有趣的啵啵表情雨！',
-                    link: window.location.href,
-                    imgUrl: '分享图标的URL'
-                });
-                
-                // 分享给朋友
-                wx.updateAppMessageShareData({
-                    title: '快来玩啵啵表情雨！',
-                    desc: '滑动屏幕召唤浪漫啵啵雨，还有惊喜特效！',
-                    link: window.location.href,
-                    imgUrl: '分享图标的URL'
-                });
-            });
-            */
-            
-            // 简易分享提示（无SDK版）
-            const shareHint = document.createElement('div');
-            shareHint.innerHTML = `
-                <div style="
-                    position: fixed;
-                    bottom: 80px;
-                    right: 20px;
-                    background: rgba(255,102,153,0.9);
-                    color: white;
-                    padding: 10px 15px;
-                    border-radius: 20px;
-                    font-size: 14px;
-                    z-index: 1000;
-                    animation: float 3s ease-in-out infinite;
-                ">
-                    👆 点击右上角分享给朋友
-                </div>
-            `;
-            document.body.appendChild(shareHint);
-        }
-        
-        // ========== 原有JS代码（需要包裹在函数中） ==========
-        function initApp() {
-            // 这里放置你原有的所有JavaScript代码
-            // 只需要将原来的代码复制到这里，除了window.onload部分
-            
-            // 初始化Canvas
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // ... 你的所有原有代码 ...
-            
-            // 特别注意：修改触摸事件处理，适配微信
-            function setupTouchEvents() {
-                let isTouching = false;
-                let lastTouchTime = 0;
-                
-                // 微信中需要更精确的触摸控制
-                canvas.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    isTouching = true;
-                    const touch = e.touches[0];
-                    lastTouchTime = Date.now();
-                    handleInteraction(touch.clientX, touch.clientY, true);
-                }, { passive: false });
-                
-                canvas.addEventListener('touchmove', function(e) {
-                    e.preventDefault();
-                    if (isTouching) {
-                        const now = Date.now();
-                        // 限制触摸频率，提高性能
-                        if (now - lastTouchTime > 16) { // 约60fps
-                            for (let touch of e.touches) {
-                                handleInteraction(touch.clientX, touch.clientY, false);
+            update() {
+                if (this.isTextChar) {
+                    this.sparkleTimer += this.sparkleSpeed;
+                    
+                    if (this.state === 'falling') {
+                        this.y += this.speedY;
+                        this.x += this.speedX;
+                        this.rotation += this.spin;
+                        this.alpha = Math.min(this.alpha + 0.03, 1);
+                        
+                        if (this.y >= this.targetY && this.bounceCount < this.maxBounces) {
+                            this.speedY = -this.speedY * 0.7;
+                            this.bounceCount++;
+                            
+                            if (this.bounceCount === this.maxBounces) {
+                                this.state = 'forming';
                             }
-                            lastTouchTime = now;
+                        }
+                        
+                        if (this.isHighlighted) {
+                            this.size = this.baseSize + Math.sin(this.sparkleTimer * 3) * 10;
+                        }
+                        
+                    } else if (this.state === 'forming') {
+                        const dx = this.targetX - this.x;
+                        const dy = this.targetY - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance > 5) {
+                            this.x += dx * 0.1;
+                            this.y += dy * 0.1;
+                            this.rotation += (0 - this.rotation) * 0.1;
+                            
+                            if (this.isHighlighted) {
+                                this.orbitAngle += this.orbitSpeed;
+                                this.x += Math.cos(this.orbitAngle) * this.orbitRadius * 0.1;
+                                this.y += Math.sin(this.orbitAngle) * this.orbitRadius * 0.1;
+                            }
+                        } else {
+                            this.state = 'formed';
+                        }
+                        
+                    } else if (this.state === 'formed') {
+                        if (this.isHighlighted) {
+                            this.orbitAngle += this.orbitSpeed;
+                            this.x = this.targetX + Math.cos(this.orbitAngle) * this.orbitRadius;
+                            this.y = this.targetY + Math.sin(this.orbitAngle) * this.orbitRadius;
+                            this.size = this.baseSize + Math.sin(this.sparkleTimer * 5) * 15;
+                        }
+                        
+                        if (isFreezing) {
+                            this.rotation *= 0.95;
                         }
                     }
-                }, { passive: false });
-                
-                canvas.addEventListener('touchend', function() {
-                    isTouching = false;
-                });
-                
-                // 鼠标事件保留，用于调试
-                canvas.addEventListener('mousedown', function(e) {
-                    isTouching = true;
-                    handleInteraction(e.clientX, e.clientY, true);
-                });
-                
-                canvas.addEventListener('mousemove', function(e) {
-                    if (isTouching) {
-                        handleInteraction(e.clientX, e.clientY, false);
+                } else {
+                    if (!isFreezing) {
+                        this.y += this.speedY;
+                        this.x += this.speedX;
+                        this.rotation += this.spin;
+                        this.wobble += this.wobbleSpeed;
+                        this.y += Math.sin(this.wobble) * this.floatSpeed;
                     }
-                });
-                
-                canvas.addEventListener('mouseup', function() {
-                    isTouching = false;
-                });
+                    
+                    if (this.y > canvas.height + 100) {
+                        this.y = -100;
+                        this.x = Math.random() * canvas.width;
+                    }
+                    if (this.x > canvas.width + 100) this.x = -100;
+                    if (this.x < -100) this.x = canvas.width + 100;
+                }
             }
             
-            // 初始化触摸事件
-            setupTouchEvents();
-            setupWeChatAudio();
-            setupWeChatShare();
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                
+                if (this.isTextChar) {
+                    // 绘制文字字符
+                    ctx.font = `bold ${this.size}px "华文行楷", "Microsoft YaHei", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    if (this.isHighlighted) {
+                        // 突出文字的发光效果
+                        ctx.shadowColor = this.color;
+                        ctx.shadowBlur = 30;
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(this.char, 0, 0);
+                        
+                        ctx.shadowBlur = 20;
+                        ctx.fillStyle = this.color;
+                        ctx.fillText(this.char, 0, 0);
+                    } else {
+                        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+                        ctx.shadowBlur = 15;
+                        ctx.fillStyle = this.color;
+                        ctx.fillText(this.char, 0, 0);
+                    }
+                } else {
+                    // 绘制表情
+                    ctx.font = `${this.size}px "Segoe UI Emoji", Arial, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    if (this.emoji.includes('✨') || this.emoji.includes('🌟')) {
+                        ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+                        ctx.shadowBlur = 25;
+                    } else {
+                        ctx.shadowColor = 'rgba(255, 102, 204, 0.6)';
+                        ctx.shadowBlur = 15;
+                    }
+                    
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(this.emoji, 0, 0);
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // 烟花类
+        class Firework {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.particles = [];
+                this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                this.createParticles();
+            }
             
-            // 初始化粒子
+            createParticles() {
+                for (let i = 0; i < 100; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 5 + 2;
+                    this.particles.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: Math.random() * 4 + 2,
+                        life: 1,
+                        decay: Math.random() * 0.02 + 0.01
+                    });
+                }
+            }
+            
+            update() {
+                for (let particle of this.particles) {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vy += 0.05;
+                    particle.life -= particle.decay;
+                }
+                this.particles = this.particles.filter(p => p.life > 0);
+                return this.particles.length > 0;
+            }
+            
+            draw() {
+                for (let particle of this.particles) {
+                    ctx.save();
+                    ctx.globalAlpha = particle.life;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        let fireworks = [];
+
+        // 创建啵啵粒子
+        function createBobos(x, y, amount) {
+            for (let i = 0; i < amount; i++) {
+                if (particles.length < CONFIG.maxParticles) {
+                    particles.push(new BoboParticle(
+                        x + Math.random() * 80 - 40,
+                        y + Math.random() * 80 - 40,
+                        false
+                    ));
+                    particleCount++;
+                    updateCounter();
+                    
+                    // 每生成10个啵啵显示成就徽章
+                    if (particleCount % 10 === 0 && !achievementShown) {
+                        showAchievement();
+                    }
+                }
+            }
+        }
+
+        // 更新计数器和进度条
+        function updateCounter() {
+            document.getElementById('count').textContent = particleCount;
+            const progress = Math.min(100, (particleCount / CONFIG.targetCount) * 100);
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${particleCount}/${CONFIG.targetCount}`;
+            
+            if (particleCount >= CONFIG.targetCount && !isSpecialTextTriggered) {
+                triggerSpecialText();
+            }
+        }
+
+        // 显示成就徽章
+        function showAchievement() {
+            const badge = document.getElementById('achievementBadge');
+            badge.classList.add('show');
+            achievementShown = true;
+            
+            setTimeout(() => {
+                badge.classList.remove('show');
+                setTimeout(() => {
+                    achievementShown = false;
+                }, 1000);
+            }, 2000);
+        }
+
+        // 触发特殊文字
+        function triggerSpecialText() {
+            if (isSpecialTextTriggered) return;
+            isSpecialTextTriggered = true;
+            
+            // 创建文字粒子
+            const centerX = canvas.width / 2;
+            const totalWidth = SPECIAL_TEXT.length * 60;
+            const startX = centerX - totalWidth / 2;
+            
+            for (let i = 0; i < SPECIAL_TEXT.length; i++) {
+                const char = SPECIAL_TEXT[i];
+                const charX = startX + i * 60;
+                
+                const textParticle = new BoboParticle(
+                    Math.random() * canvas.width,
+                    -100 - Math.random() * 200,
+                    true,
+                    char,
+                    i
+                );
+                
+                textParticle.targetX = charX;
+                particles.push(textParticle);
+            }
+            
+            // 3秒后开始组合文字
+            setTimeout(() => {
+                isFreezing = true;
+                combineText();
+            }, 3000);
+        }
+
+        // 组合文字并显示
+        function combineText() {
+            // 找到所有文字粒子
+            const textParticles = particles.filter(p => p.isTextChar);
+            
+            // 为文字粒子设置组合状态
+            textParticles.forEach(p => {
+                p.state = 'forming';
+            });
+            
+            // 2秒后显示最终效果
+            setTimeout(() => {
+                showFinalText();
+                createFireworks();
+            }, 2000);
+        }
+
+        // 显示最终文字效果
+        function showFinalText() {
+            const container = document.getElementById('finalTextContainer');
+            const finalText = document.getElementById('finalText');
+            
+            finalText.innerHTML = '';
+            
+            // 创建彩色文字
+            for (let i = 0; i < SPECIAL_TEXT.length; i++) {
+                const span = document.createElement('span');
+                span.textContent = SPECIAL_TEXT[i];
+                span.style.color = HIGHLIGHT_INDEXES.includes(i) ? '#FFCC00' : '#FFFFFF';
+                span.style.fontSize = HIGHLIGHT_INDEXES.includes(i) ? '80px' : '60px';
+                span.style.display = 'inline-block';
+                span.style.margin = '0 5px';
+                span.style.textShadow = HIGHLIGHT_INDEXES.includes(i) ? 
+                    '0 0 30px #FFCC00, 0 0 60px #FF9900' : 
+                    '0 0 20px rgba(255, 255, 255, 0.5)';
+                span.style.animation = `bounce 0.5s ease ${i * 0.1}s both`;
+                finalText.appendChild(span);
+            }
+            
+            // 显示容器
+            container.style.opacity = '1';
+            container.style.transform = 'translate(-50%, -50%) scale(1)';
+            
+            // 显示重置按钮
+            setTimeout(() => {
+                document.getElementById('resetButton').classList.add('show');
+            }, 1000);
+            
+            // 4秒后解除定格
+            setTimeout(() => {
+                isFreezing = false;
+                // 8秒后隐藏最终文字
+                setTimeout(() => {
+                    container.style.opacity = '0';
+                    container.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                    // 10秒后可再次触发
+                    setTimeout(() => {
+                        isSpecialTextTriggered = false;
+                        particleCount = 0;
+                        updateCounter();
+                    }, CONFIG.cooldownDuration);
+                }, 4000);
+            }, CONFIG.freezeDuration);
+        }
+
+        // 创建烟花
+        function createFireworks() {
+            const interval = setInterval(() => {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height * 0.8;
+                fireworks.push(new Firework(x, y));
+                
+                if (fireworks.length > 10) {
+                    clearInterval(interval);
+                }
+            }, 300);
+        }
+
+        // 事件处理
+        let isTouching = false;
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isTouching = true;
+            handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (isTouching) {
+                for (let touch of e.touches) {
+                    handleInteraction(touch.clientX, touch.clientY);
+                }
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isTouching = false;
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            isTouching = true;
+            handleInteraction(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isTouching) {
+                handleInteraction(e.clientX, e.clientY);
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isTouching = false;
+        });
+
+        function handleInteraction(x, y) {
+            if (!isFreezing) {
+                createBobos(x, y, CONFIG.spawnCount);
+                
+                // 添加触摸特效
+                createTouchEffect(x, y);
+            }
+        }
+
+        // 触摸特效
+        function createTouchEffect(x, y) {
+            for (let i = 0; i < 5; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 30 + 10;
+                const effectParticle = new BoboParticle(
+                    x + Math.cos(angle) * radius,
+                    y + Math.sin(angle) * radius,
+                    false
+                );
+                effectParticle.speedY = Math.random() * 2 - 1;
+                effectParticle.speedX = Math.random() * 2 - 1;
+                effectParticle.size = Math.random() * 20 + 15;
+                particles.push(effectParticle);
+            }
+        }
+
+        // 重置按钮
+        document.getElementById('resetButton').addEventListener('click', () => {
+            particleCount = 0;
+            particles = particles.filter(p => !p.isTextChar);
+            isSpecialTextTriggered = false;
+            isFreezing = false;
+            updateCounter();
+            
+            const container = document.getElementById('finalTextContainer');
+            container.style.opacity = '0';
+            container.style.transform = 'translate(-50%, -50%) scale(0)';
+            
+            document.getElementById('resetButton').classList.remove('show');
+            
+            // 创建一些初始粒子
             initializeParticles();
-            animate();
-        }
-        
-        // ========== 性能优化（微信专用） ==========
-        
-        // 1. 降低粒子数量
-        const CONFIG = {
-            maxParticles: 300,  // 微信中减少粒子数量
-            spawnCount: 5,      // 减少每次生成数量
-            targetCount: 80     // 降低触发阈值
-        };
-        
-        // 2. 帧率控制
-        let lastFrameTime = 0;
-        const FPS = 60;
-        const frameInterval = 1000 / FPS;
-        
-        function animateOptimized(timestamp) {
-            if (timestamp - lastFrameTime >= frameInterval) {
-                lastFrameTime = timestamp;
-                
-                // 原有的绘制逻辑
-                ctx.fillStyle = 'rgba(26, 26, 46, 0.1)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // ... 原有动画逻辑 ...
-                
-                // 微信中简化粒子效果
-                particles.forEach(particle => {
-                    particle.update();
-                    particle.draw();
-                });
+        });
+
+        // 初始化粒子
+        function initializeParticles() {
+            for (let i = 0; i < 50; i++) {
+                particles.push(new BoboParticle(
+                    Math.random() * canvas.width,
+                    Math.random() * canvas.height,
+                    false
+                ));
             }
+        }
+
+        // 动画循环
+        function animate() {
+            ctx.fillStyle = 'rgba(26, 26, 46, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            requestAnimationFrame(animateOptimized);
+            // 更新和绘制所有粒子
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            // 更新和绘制烟花
+            fireworks = fireworks.filter(firework => firework.update());
+            fireworks.forEach(firework => firework.draw());
+            
+            animationFrameId = requestAnimationFrame(animate);
         }
-        
-        // 3. 内存管理
-        function cleanupParticles() {
-            if (particles.length > CONFIG.maxParticles * 1.5) {
-                // 移除屏幕外的粒子
-                particles = particles.filter(p => {
-                    return p.y < canvas.height + 100 && 
-                           p.x < canvas.width + 100 && 
-                           p.x > -100;
-                });
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // 初始化
+        initializeParticles();
+        animate();
+
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bounce {
+                0% { transform: translateY(-50px) scale(0); opacity: 0; }
+                50% { transform: translateY(20px) scale(1.2); }
+                70% { transform: translateY(-10px) scale(0.9); }
+                100% { transform: translateY(0) scale(1); opacity: 1; }
             }
-        }
-        
-        // 定时清理
-        setInterval(cleanupParticles, 5000);
-        
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
-
 ```
