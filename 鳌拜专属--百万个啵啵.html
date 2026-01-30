@@ -1,0 +1,321 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 微信关键meta标签 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- 防止IOS橡皮筋效果 -->
+    <style>
+        html, body {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+    </style>
+    
+    <title>鳌拜专属--百万个啵啵</title>
+    <style>
+        /* 原有CSS代码保持不变，但添加以下适配 */
+        * {
+            -webkit-text-size-adjust: 100%;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* 适配微信底部安全区域 */
+        body {
+            padding-bottom: constant(safe-area-inset-bottom);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* 微信中touch-action需要更精确 */
+        #canvas {
+            touch-action: pan-y pinch-zoom;
+        }
+        
+        /* 适配微信字体 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <!-- 添加微信加载提示 -->
+    <div id="wechat-loading" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1a1a2e;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        color: white;
+        font-size: 18px;
+    ">
+        <div style="margin-bottom: 20px; font-size: 40px;">✨</div>
+        <div>加载啵啵表情雨...</div>
+        <div id="load-progress" style="margin-top: 20px; color: #ff6699;">0%</div>
+    </div>
+    
+    <!-- 原有HTML结构保持不变 -->
+    <div class="counter">啵啵能量: <span id="count">0</span></div>
+    <!-- ... 其他原有HTML ... -->
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // ========== 微信适配核心代码 ==========
+        
+        // 1. 检测微信环境
+        function isWeChat() {
+            const ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf('micromessenger') !== -1;
+        }
+        
+        // 2. 微信音频自动播放处理
+        function setupWeChatAudio() {
+            document.addEventListener('WeixinJSBridgeReady', function() {
+                // 微信JSBridge准备就绪后，可以自动播放音频
+                const audio = new Audio();
+                audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=='; // 空音频
+                audio.play().then(() => {
+                    console.log('微信音频自动播放已启用');
+                });
+            });
+        }
+        
+        // 3. 防止微信下拉刷新
+        let startY = 0;
+        document.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        document.addEventListener('touchmove', function(e) {
+            const currentY = e.touches[0].clientY;
+            // 如果页面在顶部且下拉，阻止默认行为
+            if (document.documentElement.scrollTop <= 0 && currentY > startY) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 4. 微信加载优化
+        window.addEventListener('load', function() {
+            const loading = document.getElementById('wechat-loading');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                document.getElementById('load-progress').textContent = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loading.style.opacity = '0';
+                        setTimeout(() => {
+                            loading.style.display = 'none';
+                        }, 500);
+                    }, 300);
+                }
+            }, 100);
+            
+            // 初始化原有程序
+            initApp();
+        });
+        
+        // 5. 微信分享配置
+        function setupWeChatShare() {
+            if (!isWeChat()) return;
+            
+            // 注意：以下配置需要在微信JS-SDK环境中使用
+            // 实际使用时需要后端生成签名
+            /*
+            wx.config({
+                debug: false,
+                appId: '你的AppID',
+                timestamp: 时间戳,
+                nonceStr: '随机字符串',
+                signature: '签名',
+                jsApiList: [
+                    'onMenuShareTimeline',
+                    'onMenuShareAppMessage',
+                    'updateAppMessageShareData',
+                    'updateTimelineShareData'
+                ]
+            });
+            
+            wx.ready(function() {
+                // 分享到朋友圈
+                wx.updateTimelineShareData({
+                    title: '超有趣的啵啵表情雨！',
+                    link: window.location.href,
+                    imgUrl: '分享图标的URL'
+                });
+                
+                // 分享给朋友
+                wx.updateAppMessageShareData({
+                    title: '快来玩啵啵表情雨！',
+                    desc: '滑动屏幕召唤浪漫啵啵雨，还有惊喜特效！',
+                    link: window.location.href,
+                    imgUrl: '分享图标的URL'
+                });
+            });
+            */
+            
+            // 简易分享提示（无SDK版）
+            const shareHint = document.createElement('div');
+            shareHint.innerHTML = `
+                <div style="
+                    position: fixed;
+                    bottom: 80px;
+                    right: 20px;
+                    background: rgba(255,102,153,0.9);
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 20px;
+                    font-size: 14px;
+                    z-index: 1000;
+                    animation: float 3s ease-in-out infinite;
+                ">
+                    👆 点击右上角分享给朋友
+                </div>
+            `;
+            document.body.appendChild(shareHint);
+        }
+        
+        // ========== 原有JS代码（需要包裹在函数中） ==========
+        function initApp() {
+            // 这里放置你原有的所有JavaScript代码
+            // 只需要将原来的代码复制到这里，除了window.onload部分
+            
+            // 初始化Canvas
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // ... 你的所有原有代码 ...
+            
+            // 特别注意：修改触摸事件处理，适配微信
+            function setupTouchEvents() {
+                let isTouching = false;
+                let lastTouchTime = 0;
+                
+                // 微信中需要更精确的触摸控制
+                canvas.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    isTouching = true;
+                    const touch = e.touches[0];
+                    lastTouchTime = Date.now();
+                    handleInteraction(touch.clientX, touch.clientY, true);
+                }, { passive: false });
+                
+                canvas.addEventListener('touchmove', function(e) {
+                    e.preventDefault();
+                    if (isTouching) {
+                        const now = Date.now();
+                        // 限制触摸频率，提高性能
+                        if (now - lastTouchTime > 16) { // 约60fps
+                            for (let touch of e.touches) {
+                                handleInteraction(touch.clientX, touch.clientY, false);
+                            }
+                            lastTouchTime = now;
+                        }
+                    }
+                }, { passive: false });
+                
+                canvas.addEventListener('touchend', function() {
+                    isTouching = false;
+                });
+                
+                // 鼠标事件保留，用于调试
+                canvas.addEventListener('mousedown', function(e) {
+                    isTouching = true;
+                    handleInteraction(e.clientX, e.clientY, true);
+                });
+                
+                canvas.addEventListener('mousemove', function(e) {
+                    if (isTouching) {
+                        handleInteraction(e.clientX, e.clientY, false);
+                    }
+                });
+                
+                canvas.addEventListener('mouseup', function() {
+                    isTouching = false;
+                });
+            }
+            
+            // 初始化触摸事件
+            setupTouchEvents();
+            setupWeChatAudio();
+            setupWeChatShare();
+            
+            // 初始化粒子
+            initializeParticles();
+            animate();
+        }
+        
+        // ========== 性能优化（微信专用） ==========
+        
+        // 1. 降低粒子数量
+        const CONFIG = {
+            maxParticles: 300,  // 微信中减少粒子数量
+            spawnCount: 5,      // 减少每次生成数量
+            targetCount: 80     // 降低触发阈值
+        };
+        
+        // 2. 帧率控制
+        let lastFrameTime = 0;
+        const FPS = 60;
+        const frameInterval = 1000 / FPS;
+        
+        function animateOptimized(timestamp) {
+            if (timestamp - lastFrameTime >= frameInterval) {
+                lastFrameTime = timestamp;
+                
+                // 原有的绘制逻辑
+                ctx.fillStyle = 'rgba(26, 26, 46, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // ... 原有动画逻辑 ...
+                
+                // 微信中简化粒子效果
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+            }
+            
+            requestAnimationFrame(animateOptimized);
+        }
+        
+        // 3. 内存管理
+        function cleanupParticles() {
+            if (particles.length > CONFIG.maxParticles * 1.5) {
+                // 移除屏幕外的粒子
+                particles = particles.filter(p => {
+                    return p.y < canvas.height + 100 && 
+                           p.x < canvas.width + 100 && 
+                           p.x > -100;
+                });
+            }
+        }
+        
+        // 定时清理
+        setInterval(cleanupParticles, 5000);
+        
+    </script>
+</body>
+</html>
+```
